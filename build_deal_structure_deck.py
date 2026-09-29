@@ -1,6 +1,7 @@
 """Builds MRS_Pathfinder_Deal_Structure_v3_Bilingual.pptx (EN slides 1-2, PT slides 3-4).
 
-Visual base = slide 1 of MRS_Pathfinder_GDT_Deal_Structure_Triangle_Bilingual_Revised.pptx.
+Visual base = slide 1 of MRS_Pathfinder_GDT_Deal_Structure_Triangle_Bilingual_Revised.pptx
+(now archived in Arquivo_Versoes_Antigas/, superseded by this v3 deck).
 Run: PYTHONIOENCODING=utf-8 python build_deal_structure_deck.py
 """
 from pathlib import Path

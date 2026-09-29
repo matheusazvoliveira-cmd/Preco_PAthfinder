@@ -109,3 +109,34 @@ alternative tax treatment for the Supermetal GDT integration cost line, for revi
 (EN/PT) slide comparing the US domestic reference price against the Brazilian landed price, breaking down the
 gap into product cost, international freight/insurance, customs expenses, and local taxes. Source numbers come
 from `Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx`.
+
+## Current File Set (as of this cleanup)
+
+**Working file (source of truth for cost/tax math):** `Lista_Final_Pathfinder_SKID_Custos_English_Updated.xlsx`
+- All scenario/deck build scripts read their base numbers live from this file (or from
+  `Pathfinder_Cost_Summary_PT.xlsx`, which mirrors its P&L tab) rather than hardcoding a copy, so a change here
+  should be followed by re-running the relevant `build_*.py` script before sharing a downstream file.
+
+**Clean handoff pair:** `Pathfinder_Cost_Summary_EN.xlsx` / `Pathfinder_Cost_Summary_PT.xlsx` (Item List +
+Executive Summary P&L + Price Calc Detail + Simulation tabs; built by `add_simulation_sheet.py` on top of the
+Item List/P&L generator).
+
+**Scenario add-ons (each reads the P&L live, so they always reconcile with the base case):**
+- `Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx` - Supermetal material/service ICMS-IPI/ISS split
+  (`build_scenario_b.py`).
+- `Pathfinder_Rack_ExTarifario_Scenario_EN.xlsx` / `_PT.xlsx` - ex-tarifario on the LXA/MCA/GoLinc/PTC rack.
+
+**Decks:** `MRS_Pathfinder_Deal_Structure_v3_Bilingual.pptx` (`build_deal_structure_deck.py`) and
+`MRS_Pathfinder_Simulation_Local_Taxes_Bilingual.pptx` (`build_simulation_slide.py`).
+
+**`Arquivo_Versoes_Antigas/`:** superseded snapshots kept for history only - do not build on these:
+`Lista_Final_Pathfinder_SKID_Custos.xlsx` and `..._English.xlsx` (pre-P&L, first-pass versions),
+`..._English_FreightHandoff_Updated.xlsx` (an earlier snapshot of the working file, missing the P&L/Price Calc
+Detail/Simulation tabs added later), and the two `MRS_Pathfinder_GDT_Deal_Structure_Triangle_Bilingual_*.pptx`
+decks (replaced by the v3 deck - the Revised one has broken/overlapping shapes on slide 2).
+
+**Open question:** `Pathfinder_Cost_Summary_EN_No_TP_Return.xlsx` / `_PT_No_TP_Return.xlsx` explore a genuinely
+different methodology (TP is excluded from the margin base **and never added back** to the client price, instead
+of being added back after margin like the main P&L does) - this is not a stale duplicate, it is an unresolved
+modeling question. Left in place pending a decision on whether it is a live alternative or should move to the
+archive folder.
