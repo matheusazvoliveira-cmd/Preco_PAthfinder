@@ -53,6 +53,18 @@ T = {
         notes=["II (import duty) sits inside the cost, so it is multiplied by the margin (1/(1-TDM)) and then by the local tax cascade - removing it is worth about 2.7x its face value in the final price.",
                "Even so, the local output taxes (PIS/COFINS, ICMS, IPI) stack on the whole price and outweigh the II effect - that is the point of this tab.",
                "Battery sets: II, TP and freight of the batteries scale with the quantity; the row values come from the Final Cost List (84A222059P5, group without historical TP -> 17.2%, no confirmed NCM -> II 18%)."],
+        ref_title="6) REFERENCE: FINISHED US UNIT IMPORTED AS-IS (buy the ready-built US$900k Pathfinder and land it in Brazil)",
+        ref_rows=["US price (finished product, unchanged)", "+ International freight + insurance",
+                  "+ Customs / import expenses", "+ All import taxes (II, IPI, PIS/COFINS, ICMS)",
+                  "LANDED IN BRAZIL:"],
+        ref_fx_lab="Exchange rate used for this reference (differs from the scenario FX above)",
+        ref_note="Source: 'Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx' (sheet 'Pathfinder Pronto') - "
+                 "this workbook is NOT in the repo, so these 5 values are transcribed from the footnote of "
+                 "MRS_Pathfinder_Simulation_Local_Taxes_Bilingual.pptx, not computed live. Different scope than the 4 "
+                 "scenarios above: this is a finished, already-built unit (no Wabtec Brasil margin, no TP, no Supermetal "
+                 "refurbishment - it's a straight import of a complete product), so it is not an apples-to-apples 5th "
+                 "column of the scenario table. Get the source workbook to make this row live.",
+        ref_vs="vs. each scenario's Final Client Price (positive = landed-finished-unit costs more)",
     ),
     "PT": dict(
         sheet="Simulação", pl_hint="P&L",
@@ -79,6 +91,18 @@ T = {
         notes=["O II está dentro do custo, então é multiplicado pela margem (1/(1-TDM)) e depois pela cascata de impostos locais - retirar o II vale cerca de 2,7x o valor dele no preço final.",
                "Mesmo assim, os impostos locais de saída (PIS/COFINS, ICMS, IPI) incidem sobre o preço inteiro e pesam mais que o efeito do II - esse é o ponto desta aba.",
                "Conjuntos de bateria: II, TP e frete das baterias escalam com a quantidade; os valores vêm da Final Cost List (84A222059P5, grupo sem TP histórico -> 17,2%, sem NCM confirmada -> II 18%)."],
+        ref_title="6) REFERÊNCIA: UNIDADE PRONTA DOS EUA IMPORTADA COMO ESTÁ (comprar o Pathfinder pronto de US$900 mil e desembaraçar no Brasil)",
+        ref_rows=["Preço EUA (produto pronto, inalterado)", "+ Frete internacional + seguro",
+                  "+ Despesas aduaneiras / importação", "+ Todos os impostos de importação (II, IPI, PIS/COFINS, ICMS)",
+                  "POSTO NO BRASIL:"],
+        ref_fx_lab="Câmbio usado nessa referência (diferente do câmbio dos cenários acima)",
+        ref_note="Fonte: 'Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx' (aba 'Pathfinder Pronto') - "
+                 "essa planilha NÃO está no repositório, então esses 5 valores foram transcritos do rodapé do slide "
+                 "MRS_Pathfinder_Simulation_Local_Taxes_Bilingual.pptx, não calculados ao vivo. Escopo diferente dos 4 "
+                 "cenários acima: é uma unidade pronta e já fabricada (sem margem da Wabtec Brasil, sem TP, sem reforma "
+                 "da Supermetal - é a importação direta de um produto completo), então não é uma 5ª coluna comparável "
+                 "1-pra-1 com a tabela de cenários. Pegar a planilha-fonte pra deixar essa linha ao vivo.",
+        ref_vs="vs. o Preço Final ao Cliente de cada cenário (positivo = a unidade pronta importada custa mais)",
     ),
 }[LANG]
 
@@ -258,6 +282,61 @@ for n, note in enumerate(T["notes"]):
     c = ws.cell(row=dr + 6 + n, column=1, value="- " + note)
     c.font = Font(italic=True, color="FF808080", size=9)
     ws.merge_cells(start_row=dr + 6 + n, start_column=1, end_row=dr + 6 + n, end_column=8)
+
+# ---------- section 6: finished-US-unit reference (transcribed, not live - source file missing) ----------
+rr = max(dr + 6 + len(T["notes"]) + 2, HELP0 + len(line_names) + 3)  # must clear the helper block (HELP0..HELP0+len(line_names))
+ws.cell(row=rr, column=1, value=T["ref_title"]).font = Font(bold=True, size=12)
+rr += 1
+REF_FX = 5.15
+REF_PROD, REF_FRT, REF_EXP, REF_TAX = 900000.0, 80500.0, 16800.0, 715700.0
+REF_TOTAL = REF_PROD + REF_FRT + REF_EXP + REF_TAX  # = 1,713,000
+
+ws.cell(row=rr, column=1, value=T["ref_fx_lab"])
+c = ws.cell(row=rr, column=2, value=REF_FX)
+c.number_format = '0.00'
+c.fill, c.border, c.font = INP, BOR, BOLD
+REF_FX_CELL = f"$B${rr}"
+rr += 1
+
+ws.cell(row=rr, column=2, value=T["brl"]).font = Font(italic=True, size=8, color="FF808080")
+ws.cell(row=rr, column=3, value=T["usd"]).font = Font(italic=True, size=8, color="FF808080")
+rr += 1
+
+ref_row0 = rr
+for i, lab in enumerate(T["ref_rows"]):
+    ws.cell(row=rr, column=1, value=lab)
+    if lab.endswith(":"):
+        ws.cell(row=rr, column=1).font = BOLD
+    rr += 1
+ws.cell(row=ref_row0, column=3, value=REF_PROD).number_format = USD
+ws.cell(row=ref_row0 + 1, column=3, value=REF_FRT).number_format = USD
+ws.cell(row=ref_row0 + 2, column=3, value=REF_EXP).number_format = USD
+ws.cell(row=ref_row0 + 3, column=3, value=REF_TAX).number_format = USD
+tot_cell = ws.cell(row=ref_row0 + 4, column=3, value=f"=SUM(C{ref_row0}:C{ref_row0 + 3})")
+tot_cell.number_format = USD
+tot_cell.font = Font(bold=True, size=12)
+for i in range(5):
+    bcell = ws.cell(row=ref_row0 + i, column=2, value=f"=C{ref_row0 + i}*{REF_FX_CELL}")
+    bcell.number_format = BRL
+    if i == 4:
+        bcell.font = Font(bold=True, size=12)
+rr += 1
+
+ws.cell(row=rr, column=1, value=T["ref_vs"]).font = BOLD
+rr += 1
+for j, scen_name in enumerate(T["cols"][1:], start=1):  # skip "Selected", compare vs the 4 fixed scenarios
+    fin_col = get_column_letter(3 + j * 2)  # USD column of each scenario's Final Client Price row
+    ws.cell(row=rr, column=1, value=scen_name)
+    c = ws.cell(row=rr, column=2, value=f"=C{ref_row0 + 4}-{fin_col}{R(ROW_FIN)}")
+    c.number_format = USD
+    rr += 1
+
+rr += 1
+ws.merge_cells(start_row=rr, start_column=1, end_row=rr, end_column=8)
+note_cell = ws.cell(row=rr, column=1, value="- " + T["ref_note"])
+note_cell.font = Font(italic=True, color="FFCC0000", size=9)
+note_cell.alignment = Alignment(wrap_text=True)
+ws.row_dimensions[rr].height = 60
 
 ws.column_dimensions["A"].width = 62
 for col in "BCDEFGHIJK":
