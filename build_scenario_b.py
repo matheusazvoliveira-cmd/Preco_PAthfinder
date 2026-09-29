@@ -382,7 +382,6 @@ ws[f"D{gap_b_row}"] = f"=D{final_client_b_row}-D{us_ref_row}"
 ws[f"D{gap_b_row}"].number_format = '#,##0.00'
 
 r += 1
-ws.merge_cells(f"B{r}:E{r}")
 note = ws[f"B{r}"]
 note.value = ("IMPORTANTE: os valores de ICMS Regime Especial (1,5%), IPI (0%) e ISS (5% placeholder) precisam "
               "de confirmacao formal do time de tax/juridico antes de qualquer uso comercial ou contratual. "
@@ -390,7 +389,7 @@ note.value = ("IMPORTANTE: os valores de ICMS Regime Especial (1,5%), IPI (0%) e
 note.font = Font(bold=True, italic=True, color="9C0006")
 note.alignment = Alignment(wrap_text=True)
 ws.row_dimensions[r].height = 40
-ws.merge_cells(f"B{r}:E{r+1}")
+ws.merge_cells(f"B{r}:E{r+1}")  # single merge spanning 2 rows - do NOT also merge B{r}:E{r} first (overlapping merges corrupt the file)
 
 wb.save(OUT)
 print("Saved", OUT)
