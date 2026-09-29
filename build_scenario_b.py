@@ -10,7 +10,38 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.comments import Comment
 from openpyxl.utils import get_column_letter
 
-OUT = Path(__file__).parent / "Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx"
+BASE_DIR = Path(__file__).parent
+OUT = BASE_DIR / "Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx"
+PL_SRC = BASE_DIR / "Pathfinder_Cost_Summary_PT.xlsx"
+
+# ---------------------------------------------------------------------------
+# Read the base numbers LIVE from the P&L tab instead of hardcoding a copy,
+# so this file can never silently drift from Pathfinder_Cost_Summary_PT.xlsx.
+_pl_wb = openpyxl.load_workbook(PL_SRC, data_only=False)
+_pl_name = next(n for n in _pl_wb.sheetnames if "P&L" in n or "Resumo" in n)
+_pl = _pl_wb[_pl_name]
+
+
+def pl_val(row):
+    v = _pl.cell(row=row, column=2).value
+    assert isinstance(v, (int, float)), f"{PL_SRC.name}!{_pl_name}!B{row} nao e numero: {v!r}"
+    return float(v)
+
+
+PL_FX = pl_val(3)
+PL_TDM = pl_val(4)
+PL_PISCOFINS = pl_val(5)
+PL_ICMS = pl_val(6)
+PL_IPI = pl_val(7)
+PL_RAW_IMP = pl_val(10)
+PL_RAW_PAC = pl_val(11)
+PL_TP = pl_val(12)
+PL_FREIGHT_INTL = pl_val(13)
+PL_II = pl_val(14)
+PL_FREIGHT_DOM = pl_val(15)
+PL_SUPERMETAL = pl_val(16)
+print(f"Valores lidos ao vivo de {PL_SRC.name}!{_pl_name}: FX={PL_FX} TDM={PL_TDM} "
+      f"Supermetal={PL_SUPERMETAL} (confere com B16)")
 
 NAVY = "14315B"; HEADER_FILL = "1F3864"; SECTION_FILL = "D9E2F3"
 WARN_FILL = "FCE4D6"; GOOD_FILL = "E2EFDA"
@@ -102,9 +133,9 @@ r += 2
 # ---------------------------------------------------------------------------
 section("0) INPUTS EDITAVEIS (mesma metodologia do Executive Summary (P&L))")
 header_row()
-fx_row = line("Taxa de cambio (USD->BRL)", 5.10, None, "Copiado do Executive Summary (P&L), celula B3 do Pathfinder_Cost_Summary_PT.xlsx.")
-tdm_row = line("Margem total do negocio (TDM)", 0.45, None, "Copiado do Executive Summary (P&L), celula B4. E o mesmo alvo de margem usado no cenario atual (Cenario A); nao muda entre cenarios.")
-piscofins_row = line("PIS/COFINS (mantido igual ao Cenario A)", 0.1006, None,
+fx_row = line("Taxa de cambio (USD->BRL)", PL_FX, None, "Copiado do Executive Summary (P&L), celula B3 do Pathfinder_Cost_Summary_PT.xlsx.")
+tdm_row = line("Margem total do negocio (TDM)", PL_TDM, None, "Copiado do Executive Summary (P&L), celula B4. E o mesmo alvo de margem usado no cenario atual (Cenario A); nao muda entre cenarios.")
+piscofins_row = line("PIS/COFINS (mantido igual ao Cenario A)", PL_PISCOFINS, None,
                       "PREMISSA A CONFIRMAR COM TAX: assumimos que o PIS/COFINS incide igual sobre mercadoria e sobre servico (mesma aliquota blended 10,06% do Cenario A). Na pratica pode haver diferenca de regime (cumulativo x nao cumulativo) entre a nota fiscal de servico e a nota fiscal de mercadoria - pedir confirmacao.")
 icms_regime_row = line("ICMS - Regime Especial Supermetal (materiais)", 0.015, None,
                         "ENCONTRADO NA PROPRIA COTACAO DA SUPERMETAL: aba 'Container in a GDT' do arquivo 'Pathfinder GDT MRS - Cost Rollup - Rev0.xlsx', linha 13, coluna 'Regime Especial 1,5%'. Ou seja, a propria Supermetal ja cotou essa operacao assumindo um Regime Especial de ICMS de 1,5% (em vez do 18% padrao usado hoje no Cenario A). PRECISA CONFIRMACAO: (a) se esse regime existe e esta ativo hoje junto a SEFAZ-MG, (b) se e aplicavel a essa operacao especifica (indutrializacao por encomenda) e nao apenas a cotacao antiga.")
@@ -165,15 +196,15 @@ r += 1
 # ---------------------------------------------------------------------------
 section("2) OUTROS CUSTOS DO DEAL (nao mudam entre Cenario A e B)")
 header_row()
-raw_imp_row = line("Custo bruto - itens importados", 1346980.92, f"=C{r}/$C${fx_row}",
+raw_imp_row = line("Custo bruto - itens importados", PL_RAW_IMP, f"=C{r}/$C${fx_row}",
                     "Copiado do Executive Summary (P&L), celula B10. Nao muda no Cenario B.")
-raw_pac_row = line("Custo bruto - itens PAC (ja nacionalizados)", 166060.16, f"=C{r}/$C${fx_row}",
+raw_pac_row = line("Custo bruto - itens PAC (ja nacionalizados)", PL_RAW_PAC, f"=C{r}/$C${fx_row}",
                     "Copiado da celula B11. PAC ja e custo local todo-incluso; nao entra na discussao de ISS x ICMS deste cenario.")
-tp_row = line("TP - Transfer Price (margem propria da WBT USA)", 198163.69, f"=C{r}/$C${fx_row}",
+tp_row = line("TP - Transfer Price (margem propria da WBT USA)", PL_TP, f"=C{r}/$C${fx_row}",
               "Copiado da celula B12. Segue tratado como nesta sessao: soma ao custo, mas fica fora da base de margem da WBT Brazil.")
-freight_row = line("Frete internacional", 18998.55, f"=C{r}/$C${fx_row}", "Copiado da celula B13.")
-ii_row = line("II - Imposto de Importacao", 280915.82, f"=C{r}/$C${fx_row}", "Copiado da celula B14.")
-dom_freight_row = line("Frete domestico", 21753.10, f"=C{r}/$C${fx_row}", "Copiado da celula B15.")
+freight_row = line("Frete internacional", PL_FREIGHT_INTL, f"=C{r}/$C${fx_row}", "Copiado da celula B13 (ao vivo).")
+ii_row = line("II - Imposto de Importacao", PL_II, f"=C{r}/$C${fx_row}", "Copiado da celula B14 (ao vivo).")
+dom_freight_row = line("Frete domestico", PL_FREIGHT_DOM, f"=C{r}/$C${fx_row}", "Copiado da celula B15 (ao vivo).")
 r += 1
 
 # ---------------------------------------------------------------------------
@@ -327,6 +358,28 @@ pct_row = line("Diferenca em % do preco final atual", None, None, "Diferenca div
 ws[f"C{pct_row}"] = f"=C{diff_row}/C{final_client_a_row}"
 ws[f"C{pct_row}"].number_format = "0.0%"
 ws[f"D{pct_row}"] = None
+r += 1
+
+# ---------------------------------------------------------------------------
+section("6) CHECAGEM vs. REFERENCIA DOMESTICA EUA (mesma base da aba Simulacao)")
+header_row()
+us_ref_row = line("Preco de referencia domestico EUA (US$, input)", None, 900000,
+                   "Mesmo valor de referencia usado na aba 'Simulacao' do Pathfinder_Cost_Summary_PT.xlsx e no slide "
+                   "MRS_Pathfinder_Simulation_Local_Taxes_Bilingual.pptx (preco informado por Matheus para a venda "
+                   "domestica do Pathfinder nos EUA). Nao vem de um arquivo de custo americano - e um dado de mercado, "
+                   "nao um calculo. O lado brasileiro de comparacao abaixo, sim, usa a cadeia completa de custo+frete+"
+                   "imposto ja calculada nas secoes 3 e 4 desta aba.")
+ws[f"D{us_ref_row}"].fill = PatternFill("solid", fgColor=WARN_FILL)
+
+gap_a_row = line("Preco Final ao Cliente - Cenario A vs. referencia EUA (US$)", None, None,
+                  "Cenario A (secao 3) em USD, menos a referencia EUA acima.")
+ws[f"D{gap_a_row}"] = f"=D{final_client_a_row}-D{us_ref_row}"
+ws[f"D{gap_a_row}"].number_format = '#,##0.00'
+
+gap_b_row = line("Preco Final ao Cliente - Cenario B vs. referencia EUA (US$)", None, None,
+                  "Cenario B (secao 4) em USD, menos a referencia EUA acima.", fill=GOOD_FILL)
+ws[f"D{gap_b_row}"] = f"=D{final_client_b_row}-D{us_ref_row}"
+ws[f"D{gap_b_row}"].number_format = '#,##0.00'
 
 r += 1
 ws.merge_cells(f"B{r}:E{r}")
