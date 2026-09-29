@@ -20,6 +20,7 @@ BASE = Path(__file__).parent
 LANG = sys.argv[1] if len(sys.argv) > 1 else "EN"
 TARGET = BASE / f"Pathfinder_Cost_Summary_{LANG}.xlsx"
 SRC = BASE / "Lista_Final_Pathfinder_SKID_Custos_English_Updated.xlsx"
+REF_SRC = BASE / "Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx"
 
 OLD_INC, OLD_EXC = 1.526333104, 1.302332
 TP_HAD, TP_NONE = 0.13, 0.172
@@ -58,12 +59,11 @@ T = {
                   "+ Customs / import expenses", "+ All import taxes (II, IPI, PIS/COFINS, ICMS)",
                   "LANDED IN BRAZIL:"],
         ref_fx_lab="Exchange rate used for this reference (differs from the scenario FX above)",
-        ref_note="Source: 'Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx' (sheet 'Pathfinder Pronto') - "
-                 "this workbook is NOT in the repo, so these 5 values are transcribed from the footnote of "
-                 "MRS_Pathfinder_Simulation_Local_Taxes_Bilingual.pptx, not computed live. Different scope than the 4 "
-                 "scenarios above: this is a finished, already-built unit (no Wabtec Brasil margin, no TP, no Supermetal "
+        ref_note="Source: read LIVE from 'Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx', sheet "
+                 "'Pathfinder Pronto' (cells H24, I22, I26, I27, I28, I35, I56). Different scope than the 4 scenarios "
+                 "above: this is a finished, already-built unit (no Wabtec Brasil margin, no TP, no Supermetal "
                  "refurbishment - it's a straight import of a complete product), so it is not an apples-to-apples 5th "
-                 "column of the scenario table. Get the source workbook to make this row live.",
+                 "column of the scenario table.",
         ref_vs="vs. each scenario's Final Client Price (positive = landed-finished-unit costs more)",
     ),
     "PT": dict(
@@ -96,12 +96,11 @@ T = {
                   "+ Despesas aduaneiras / importação", "+ Todos os impostos de importação (II, IPI, PIS/COFINS, ICMS)",
                   "POSTO NO BRASIL:"],
         ref_fx_lab="Câmbio usado nessa referência (diferente do câmbio dos cenários acima)",
-        ref_note="Fonte: 'Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx' (aba 'Pathfinder Pronto') - "
-                 "essa planilha NÃO está no repositório, então esses 5 valores foram transcritos do rodapé do slide "
-                 "MRS_Pathfinder_Simulation_Local_Taxes_Bilingual.pptx, não calculados ao vivo. Escopo diferente dos 4 "
-                 "cenários acima: é uma unidade pronta e já fabricada (sem margem da Wabtec Brasil, sem TP, sem reforma "
-                 "da Supermetal - é a importação direta de um produto completo), então não é uma 5ª coluna comparável "
-                 "1-pra-1 com a tabela de cenários. Pegar a planilha-fonte pra deixar essa linha ao vivo.",
+        ref_note="Fonte: lido AO VIVO de 'Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx', aba "
+                 "'Pathfinder Pronto' (celulas H24, I22, I26, I27, I28, I35, I56). Escopo diferente dos 4 cenários "
+                 "acima: é uma unidade pronta e já fabricada (sem margem da Wabtec Brasil, sem TP, sem reforma da "
+                 "Supermetal - é a importação direta de um produto completo), então não é uma 5ª coluna comparável "
+                 "1-pra-1 com a tabela de cenários.",
         ref_vs="vs. o Preço Final ao Cliente de cada cenário (positivo = a unidade pronta importada custa mais)",
     ),
 }[LANG]
@@ -283,13 +282,26 @@ for n, note in enumerate(T["notes"]):
     c.font = Font(italic=True, color="FF808080", size=9)
     ws.merge_cells(start_row=dr + 6 + n, start_column=1, end_row=dr + 6 + n, end_column=8)
 
-# ---------- section 6: finished-US-unit reference (transcribed, not live - source file missing) ----------
+# ---------- section 6: finished-US-unit reference (read live from the China Gate "completo" workbook) ----------
+_ref_wb = openpyxl.load_workbook(REF_SRC, data_only=True, read_only=True)
+_ref = _ref_wb["Pathfinder Pronto"]
+assert _ref["H24"].value == 900000, f"US sticker price changed in {REF_SRC.name}: {_ref['H24'].value!r}"
+REF_FX = _ref["I22"].value
+_i26, _i27, _i28, _i35, _i56 = (_ref[c].value for c in ("I26", "I27", "I28", "I35", "I56"))
+assert all(isinstance(v, (int, float)) for v in (REF_FX, _i26, _i27, _i28, _i35, _i56)), \
+    f"Non-numeric cell in {REF_SRC.name}!Pathfinder Pronto"
+_ref_wb.close()
+REF_PROD = _i26 / REF_FX
+REF_FRT = (_i27 + _i28) / REF_FX
+REF_EXP = _i35 / REF_FX
+REF_TAX = (_i56 - _i26 - _i27 - _i28 - _i35) / REF_FX
+REF_TOTAL = REF_PROD + REF_FRT + REF_EXP + REF_TAX
+print(f"Referencia EUA lida ao vivo de {REF_SRC.name}: FX={REF_FX} produto={REF_PROD:.0f} "
+      f"frete+seguro={REF_FRT:.0f} despesas={REF_EXP:.0f} impostos={REF_TAX:.0f} total={REF_TOTAL:.0f}")
+
 rr = max(dr + 6 + len(T["notes"]) + 2, HELP0 + len(line_names) + 3)  # must clear the helper block (HELP0..HELP0+len(line_names))
 ws.cell(row=rr, column=1, value=T["ref_title"]).font = Font(bold=True, size=12)
 rr += 1
-REF_FX = 5.15
-REF_PROD, REF_FRT, REF_EXP, REF_TAX = 900000.0, 80500.0, 16800.0, 715700.0
-REF_TOTAL = REF_PROD + REF_FRT + REF_EXP + REF_TAX  # = 1,713,000
 
 ws.cell(row=rr, column=1, value=T["ref_fx_lab"])
 c = ws.cell(row=rr, column=2, value=REF_FX)

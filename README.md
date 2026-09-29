@@ -108,7 +108,13 @@ alternative tax treatment for the Supermetal GDT integration cost line, for revi
 `MRS_Pathfinder_Simulation_Local_Taxes_Bilingual.pptx` (built by `build_simulation_slide.py`) is a bilingual
 (EN/PT) slide comparing the US domestic reference price against the Brazilian landed price, breaking down the
 gap into product cost, international freight/insurance, customs expenses, and local taxes. Source numbers come
-from `Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx`.
+from `Planilha de Custos de Importacao - Pathfinder completo- Set 26.xlsx` (sheet `Pathfinder Pronto`).
+
+The "Simulation"/"Simulação" tab in `Pathfinder_Cost_Summary_EN.xlsx` / `_PT.xlsx` mirrors this as section 6
+("finished US unit imported as-is"), reading the same 5 cells live from that workbook. It shows the landed
+finished-unit price (~US\$1,713k) is *more* expensive than every one of the 4 build-via-Wabtec-Brasil scenarios
+(by roughly US\$60k-99k) - buying the Pathfinder already built in the US and importing it does not undercut
+building it here.
 
 ## Current File Set (as of this cleanup)
 
