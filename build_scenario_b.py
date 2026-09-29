@@ -10,7 +10,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.comments import Comment
 from openpyxl.utils import get_column_letter
 
-OUT = Path(__file__).parent / "Proposal" / "Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx"
+OUT = Path(__file__).parent / "Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx"
 
 NAVY = "14315B"; HEADER_FILL = "1F3864"; SECTION_FILL = "D9E2F3"
 WARN_FILL = "FCE4D6"; GOOD_FILL = "E2EFDA"
@@ -185,7 +185,7 @@ ws[f"C{final_cost_a_row}"] = (f"=C{raw_imp_row}+C{raw_pac_row}+C{tp_row}+C{freig
                                f"+C{dom_freight_row}+C{total_check_row}")
 ws[f"D{final_cost_a_row}"] = f"=C{final_cost_a_row}/$C${fx_row}"
 
-base_margin_a_row = line("Base para margem (custo final - TP)", None, None, "= custo final acima - TP.")
+base_margin_a_row = line("Base para margem (custo final - TP)", None, None, "Custo final acima menos TP.")
 ws[f"C{base_margin_a_row}"] = f"=C{final_cost_a_row}-C{tp_row}"
 ws[f"D{base_margin_a_row}"] = f"=C{base_margin_a_row}/$C${fx_row}"
 
@@ -212,7 +212,7 @@ ws[f"C{ipi_a_row}"] = f"=C{icms_a_row}*0.0969"
 ws[f"D{ipi_a_row}"] = f"=C{ipi_a_row}/$C${fx_row}"
 
 final_client_a_row = line("PRECO FINAL AO CLIENTE - CENARIO A", None, None,
-                           "= ICMS acumulado + IPI.", bold=True, fill=WARN_FILL)
+                           "ICMS acumulado mais IPI.", bold=True, fill=WARN_FILL)
 ws[f"C{final_client_a_row}"] = f"=C{icms_a_row}+C{ipi_a_row}"
 ws[f"D{final_client_a_row}"] = f"=C{final_client_a_row}/$C${fx_row}"
 r += 1
@@ -225,7 +225,7 @@ final_cost_b_row = line("Custo final (com TP), SEM o Supermetal (tratado a parte
 ws[f"C{final_cost_b_row}"] = f"=C{raw_imp_row}+C{raw_pac_row}+C{tp_row}+C{freight_row}+C{ii_row}+C{dom_freight_row}"
 ws[f"D{final_cost_b_row}"] = f"=C{final_cost_b_row}/$C${fx_row}"
 
-base_margin_b_row = line("Base para margem (sem Supermetal, sem TP)", None, None, "= custo acima - TP.")
+base_margin_b_row = line("Base para margem (sem Supermetal, sem TP)", None, None, "Custo acima menos TP.")
 ws[f"C{base_margin_b_row}"] = f"=C{final_cost_b_row}-C{tp_row}"
 ws[f"D{base_margin_b_row}"] = f"=C{base_margin_b_row}/$C${fx_row}"
 
@@ -249,7 +249,7 @@ ipi_b_row = line("+ IPI 9,69% (parte importada/PAC, sem Supermetal)", None, None
 ws[f"C{ipi_b_row}"] = f"=C{icms_b_row}*0.0969"
 ws[f"D{ipi_b_row}"] = f"=C{ipi_b_row}/$C${fx_row}"
 
-final_non_sm_row = line("Preco final ao cliente - parte NAO-Supermetal", None, None, "= ICMS + IPI acima.", bold=True)
+final_non_sm_row = line("Preco final ao cliente - parte NAO-Supermetal", None, None, "ICMS mais IPI acima.", bold=True)
 ws[f"C{final_non_sm_row}"] = f"=C{icms_b_row}+C{ipi_b_row}"
 ws[f"D{final_non_sm_row}"] = f"=C{final_non_sm_row}/$C${fx_row}"
 
@@ -279,7 +279,7 @@ mat_ipi_row = line("+ IPI Regime Especial Supermetal (0%, nao 9,69%)", None, Non
 ws[f"C{mat_ipi_row}"] = f"=C{mat_icms_row}*C{ipi_regime_row}"
 ws[f"D{mat_ipi_row}"] = f"=C{mat_ipi_row}/$C${fx_row}"
 
-final_mat_row = line("Preco final - parcela MATERIAL Supermetal", None, None, "= ICMS regime especial + IPI regime especial.", bold=True)
+final_mat_row = line("Preco final - parcela MATERIAL Supermetal", None, None, "ICMS regime especial mais IPI regime especial.", bold=True)
 ws[f"C{final_mat_row}"] = f"=C{mat_icms_row}+C{mat_ipi_row}"
 ws[f"D{final_mat_row}"] = f"=C{final_mat_row}/$C${fx_row}"
 
@@ -303,13 +303,13 @@ serv_iss_row = line("+ ISS (nao ICMS, nao IPI) - aliquota do municipio da Superm
 ws[f"C{serv_iss_row}"] = f"=C{serv_pc_row}*C{iss_row}"
 ws[f"D{serv_iss_row}"] = f"=C{serv_iss_row}/$C${fx_row}"
 
-final_serv_row = line("Preco final - parcela SERVICO Supermetal", None, None, "= PIS/COFINS acumulado + ISS.", bold=True)
+final_serv_row = line("Preco final - parcela SERVICO Supermetal", None, None, "PIS/COFINS acumulado mais ISS.", bold=True)
 ws[f"C{final_serv_row}"] = f"=C{serv_pc_row}+C{serv_iss_row}"
 ws[f"D{final_serv_row}"] = f"=C{final_serv_row}/$C${fx_row}"
 
 r += 1
 final_client_b_row = line("PRECO FINAL AO CLIENTE - CENARIO B (soma das 3 partes)", None, None,
-                           "= parte nao-Supermetal + parte material Supermetal (regime especial) + parte servico Supermetal (ISS).",
+                           "Parte nao-Supermetal mais parte material Supermetal (regime especial) mais parte servico Supermetal (ISS).",
                            bold=True, fill=GOOD_FILL)
 ws[f"C{final_client_b_row}"] = f"=C{final_non_sm_row}+C{final_mat_row}+C{final_serv_row}"
 ws[f"D{final_client_b_row}"] = f"=C{final_client_b_row}/$C${fx_row}"
@@ -323,7 +323,7 @@ diff_row = line("Diferenca (Cenario A - Cenario B)", None, None,
                  bold=True, fill=GOOD_FILL)
 ws[f"C{diff_row}"] = f"=C{final_client_a_row}-C{final_client_b_row}"
 ws[f"D{diff_row}"] = f"=C{diff_row}/$C${fx_row}"
-pct_row = line("Diferenca em % do preco final atual", None, None, "= diferenca / preco final Cenario A.")
+pct_row = line("Diferenca em % do preco final atual", None, None, "Diferenca dividida pelo preco final do Cenario A.")
 ws[f"C{pct_row}"] = f"=C{diff_row}/C{final_client_a_row}"
 ws[f"C{pct_row}"].number_format = "0.0%"
 ws[f"D{pct_row}"] = None
