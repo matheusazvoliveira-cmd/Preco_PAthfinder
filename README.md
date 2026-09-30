@@ -116,6 +116,15 @@ finished-unit price (~US\$1,713k) is *more* expensive than every one of the 4 bu
 (by roughly US\$60k-99k) - buying the Pathfinder already built in the US and importing it does not undercut
 building it here.
 
+The tab also has two more sections so every scenario lives in one place instead of being scattered across files:
+- **Section 7 (Regime Especial Supermetal)**: the same Material/ICMS-IPI-regime + Service/ISS split as
+  `Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx`, rebuilt row-by-row from the live P&L so it always
+  reconciles with the Base scenario's non-Supermetal cost lines. Cross-checked against the standalone Cenário B
+  file: both report the identical Final Client Price (R\$6,728,109.30 / US\$1,319,237.12).
+- **Section 8 (Resumo - todos os cenários)**: a 6-row side-by-side table (Base, No-II, 1-battery,
+  No-II+1-battery, Regime Especial, US reference) with Net Price and Final Client Price in USD, so the price
+  comparison the user asked for is visible on one screen.
+
 ## Current File Set (as of this cleanup)
 
 **Working file (source of truth for cost/tax math):** `Lista_Final_Pathfinder_SKID_Custos_English_Updated.xlsx`

@@ -65,6 +65,19 @@ T = {
                  "refurbishment - it's a straight import of a complete product), so it is not an apples-to-apples 5th "
                  "column of the scenario table.",
         ref_vs="vs. each scenario's Final Client Price (positive = landed-finished-unit costs more)",
+        regime_title="7) SCENARIO: SUPERMETAL SPECIAL REGIME (Material: ICMS 1.5%/IPI 0%; Service: ISS instead of ICMS/IPI)",
+        regime_note="Same split and rates as Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx (build_scenario_b.py) - "
+                    "material R$432,500 (incl. R$20,000 transport) + service R$275,290.60, from 'Pathfinder GDT MRS - Cost "
+                    "Rollup - Rev0.xlsx' ('Container in a GDT' sheet). Uses the Base scenario's other costs (2 battery "
+                    "sets, II in) - not yet combined with the No-II/battery switches above. ICMS 1.5%/IPI 0% and ISS 5% "
+                    "are still pending tax confirmation - see the Fonte column in the Cenario B file.",
+        regime_icms="ICMS - Supermetal special regime (material)", regime_ipi="IPI - Supermetal special regime (material)",
+        regime_iss="ISS on the service portion (placeholder)",
+        summary_title="8) SUMMARY - ALL SCENARIOS SIDE BY SIDE",
+        summary_h=["Scenario", "Net Price (Our Price) USD", "Final Client Price USD"],
+        summary_rows=["1  Base (2 battery sets, II in)", "2  No import duty (II = 0)", "3  One battery set (II in)",
+                      "4  No II + one battery set", "5  Supermetal special regime (Base battery/II)",
+                      "6  US reference: finished unit landed in Brazil"],
     ),
     "PT": dict(
         sheet="Simulação", pl_hint="P&L",
@@ -102,6 +115,21 @@ T = {
                  "Supermetal - é a importação direta de um produto completo), então não é uma 5ª coluna comparável "
                  "1-pra-1 com a tabela de cenários.",
         ref_vs="vs. o Preço Final ao Cliente de cada cenário (positivo = a unidade pronta importada custa mais)",
+        regime_title="7) CENÁRIO: REGIME ESPECIAL SUPERMETAL (Material: ICMS 1,5%/IPI 0%; Serviço: ISS em vez de ICMS/IPI)",
+        regime_note="Mesma divisão e taxas do Pathfinder_Cost_Summary_PT_Cenario_B_RegimeEspecial.xlsx (build_scenario_b.py) - "
+                    "material R$432.500 (incl. R$20.000 de transporte) + serviço R$275.290,60, vindos de 'Pathfinder GDT "
+                    "MRS - Cost Rollup - Rev0.xlsx' (aba 'Container in a GDT'). Usa os demais custos do cenário Base (2 "
+                    "conjuntos de bateria, II incluído) - ainda não combinado com as chaves de II/bateria acima. ICMS "
+                    "1,5%/IPI 0% e ISS 5% ainda dependem de confirmação do time de tax - ver coluna Fonte no arquivo "
+                    "Cenário B.",
+        regime_icms="ICMS - regime especial Supermetal (material)", regime_ipi="IPI - regime especial Supermetal (material)",
+        regime_iss="ISS sobre a parcela de serviço (placeholder)",
+        summary_title="8) RESUMO - TODOS OS CENÁRIOS LADO A LADO",
+        summary_h=["Cenário", "Preço Líquido (Nosso Preço) USD", "Preço Final ao Cliente USD"],
+        summary_rows=["1  Base (2 conjuntos de bateria, II incluído)", "2  Sem imposto de importação (II = 0)",
+                      "3  Um conjunto de bateria (II incluído)", "4  Sem II + um conjunto de bateria",
+                      "5  Regime especial Supermetal (bateria/II do Base)",
+                      "6  Referência EUA: unidade pronta posta no Brasil"],
     ),
 }[LANG]
 
@@ -349,6 +377,89 @@ note_cell = ws.cell(row=rr, column=1, value="- " + T["ref_note"])
 note_cell.font = Font(italic=True, color="FFCC0000", size=9)
 note_cell.alignment = Alignment(wrap_text=True)
 ws.row_dimensions[rr].height = 60
+rr += 2
+
+# ---------- section 7: Supermetal special regime scenario (same split/rates as Cenario B) ----------
+MAT_TOTAL, SVC_TOTAL = 432500.0, 275290.6  # matches build_scenario_b.py sections 1 and 3
+ws.cell(row=rr, column=1, value=T["regime_title"]).font = Font(bold=True, size=12)
+rr += 1
+regime_inputs = [(T["regime_icms"], 0.015), (T["regime_ipi"], 0.0), (T["regime_iss"], 0.05)]
+for lab, val in regime_inputs:
+    ws.cell(row=rr, column=1, value=lab)
+    c = ws.cell(row=rr, column=2, value=val)
+    c.number_format = PCT
+    c.fill, c.border, c.font = INP, BOR, BOLD
+    rr += 1
+ICMS_REGIME_CELL, IPI_REGIME_CELL, ISS_CELL = (f"$B${rr - 3}", f"$B${rr - 2}", f"$B${rr - 1}")
+
+# non-Supermetal part reuses the Base scenario's own cost lines (column D = BRL); row by row, same
+# pattern as build_scenario_b.py, so each intermediate step stays inspectable instead of one giant formula.
+def calc_row(label, formula, bold=False):
+    global rr
+    ws.cell(row=rr, column=1, value=label)
+    c = ws.cell(row=rr, column=2, value=formula)
+    c.number_format = BRL
+    ws.cell(row=rr, column=3, value=f"=B{rr}/{FX}").number_format = USD
+    if bold:
+        c.font = ws.cell(row=rr, column=3).font = Font(bold=True, size=12)
+    row_used = rr
+    rr += 1
+    return row_used
+
+nonsm_cost_row = calc_row("Custo (sem Supermetal)" if LANG == "PT" else "Cost (excl. Supermetal)", "=D19+D20+D21+D22+D23+D24")
+nonsm_base_row = calc_row("Base p/ margem" if LANG == "PT" else "Base for margin", f"=B{nonsm_cost_row}-D21")
+nonsm_net_row = calc_row("Preço líquido (sem Supermetal)" if LANG == "PT" else "Net price (excl. Supermetal)",
+                          f"=B{nonsm_base_row}/(1-{TDM})+D21")
+nonsm_pc_row = calc_row("+ PIS/COFINS", f"=B{nonsm_net_row}/(1-{PC})")
+nonsm_icms_row = calc_row("+ ICMS (18%)", f"=B{nonsm_pc_row}/(1-{ICMS})")
+nonsm_fin_row = calc_row("Preço final (sem Supermetal):" if LANG == "PT" else "Final price (excl. Supermetal):",
+                          f"=B{nonsm_icms_row}*(1+{IPI})", bold=True)
+
+mat_net_row = calc_row("Material com margem" if LANG == "PT" else "Material with margin", f"={MAT_TOTAL}/(1-{TDM})")
+mat_pc_row = calc_row("+ PIS/COFINS (material)", f"=B{mat_net_row}/(1-{PC})")
+mat_icms_row = calc_row("+ ICMS regime especial", f"=B{mat_pc_row}/(1-{ICMS_REGIME_CELL})")
+mat_fin_row = calc_row("Preço final (material):" if LANG == "PT" else "Final price (material):",
+                        f"=B{mat_icms_row}*(1+{IPI_REGIME_CELL})", bold=True)
+
+svc_net_row = calc_row("Serviço com margem" if LANG == "PT" else "Service with margin", f"={SVC_TOTAL}/(1-{TDM})")
+svc_pc_row = calc_row("+ PIS/COFINS (serviço)", f"=B{svc_net_row}/(1-{PC})")
+svc_fin_row = calc_row("Preço final (serviço, com ISS):" if LANG == "PT" else "Final price (service, with ISS):",
+                        f"=B{svc_pc_row}*(1+{ISS_CELL})", bold=True)
+
+regime_net_row = calc_row(T["rows"][3], f"=B{nonsm_net_row}+B{mat_net_row}+B{svc_net_row}", bold=True)
+regime_fin_row = calc_row(T["rows"][-1], f"=B{nonsm_fin_row}+B{mat_fin_row}+B{svc_fin_row}", bold=True)
+rr += 1
+
+ws.merge_cells(start_row=rr, start_column=1, end_row=rr, end_column=8)
+rnote = ws.cell(row=rr, column=1, value="- " + T["regime_note"])
+rnote.font = Font(italic=True, color="FF808080", size=9)
+rnote.alignment = Alignment(wrap_text=True)
+ws.row_dimensions[rr].height = 60
+rr += 2
+
+# ---------- section 8: all-scenarios summary table ----------
+ws.cell(row=rr, column=1, value=T["summary_title"]).font = Font(bold=True, size=12)
+rr += 1
+for col, h in enumerate(T["summary_h"], start=1):
+    hc = ws.cell(row=rr, column=col, value=h)
+    hc.fill, hc.font = HF, HFONT
+    hc.alignment = Alignment(wrap_text=True, vertical="center")
+rr += 1
+summary_net_refs = [f"D{R(ROW_NET)}", f"F{R(ROW_NET)}", f"H{R(ROW_NET)}", f"J{R(ROW_NET)}",
+                    f"B{regime_net_row}", f"C{ref_row0 + 4}"]
+summary_fin_refs = [f"D{R(ROW_FIN)}", f"F{R(ROW_FIN)}", f"H{R(ROW_FIN)}", f"J{R(ROW_FIN)}",
+                    f"B{regime_fin_row}", f"C{ref_row0 + 4}"]
+summary_is_brl = [True, True, True, True, True, False]  # section-6 reference's C column is already USD
+for i, name in enumerate(T["summary_rows"]):
+    ws.cell(row=rr, column=1, value=name)
+    net_ref, fin_ref = summary_net_refs[i], summary_fin_refs[i]
+    net_formula = f"={net_ref}/{FX}" if summary_is_brl[i] else f"={net_ref}"
+    fin_formula = f"={fin_ref}/{FX}" if summary_is_brl[i] else f"={fin_ref}"
+    ws.cell(row=rr, column=2, value=net_formula).number_format = USD
+    fc = ws.cell(row=rr, column=3, value=fin_formula)
+    fc.number_format = USD
+    fc.font = BOLD
+    rr += 1
 
 ws.column_dimensions["A"].width = 62
 for col in "BCDEFGHIJK":
